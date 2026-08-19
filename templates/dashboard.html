@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard · Study OS
+{% endblock %}
+
+
+{% block content %}
+
+<header class="page-header">
+
+    <div>
+
+        <div class="eyebrow">
+            {{ current_user.display_name|upper }} · STUDY OS
+        </div>w
+
+        <h1>
+            Welcome back, {{ current_user.display_name }}.
+        </h1>
+
+        <p>
+            Here's your progress.
+        </p>
+
+    </div>
+
+</header>
+
+
+<section class="stats-grid">
+
+    <div class="stat-card">
+
+        <span>🔥</span>
+
+        <strong>
+            {{ current_streak }}
+        </strong>
+
+        <small>
+            Current streak
+        </small>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <span>🏆</span>
+
+        <strong>
+            {{ best_streak }}
+        </strong>
+
+        <small>
+            Best streak
+        </small>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <span>📖</span>
+
+        <strong>
+            {{ total|round(1) }}
+        </strong>
+
+        <small>
+            Total pages
+        </small>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <span>⏱</span>
+
+        <strong>
+            {{ (study_minutes / 60)|round(1) }}
+        </strong>
+
+        <small>
+            Study hours
+        </small>
+
+    </div>
+
+</section>
+
+
+<div class="dashboard-grid">
+
+
+    <section class="panel hero-progress">
+
+        <div>
+
+            <div class="section-label">
+                TODAY
+            </div>
+
+            <h2>
+                Writing goal
+            </h2>
+
+            <p>
+                {{ today_pages }} /
+                {{ current_user.daily_page_goal }}
+                pages
+            </p>
+
+        </div>
+
+
+        {% set goal = current_user.daily_page_goal or 0 %}
+        {% set progress =
+        (today_pages / goal * 100)
+        if goal > 0
+        else 0
+        %}
+        {% set progress = [0, [progress, 100]|min]|max %}
+
+
+        <div class="progress">
+
+            <div
+                class="progress-bar"
+                data-progress="{{ progress }}"
+            ></div>
+
+        </div>
+
+
+        <a class="primary-button inline" href="{{ url_for('writing') }}">
+            Log writing
+        </a>
+
+    </section>
+
+
+    <section class="panel">
+
+        <div class="section-label">
+            THIS WEEK
+        </div>
+
+        <h2>
+            {{ weekly_pages|round(1) }} pages
+        </h2>
+
+        <p>
+            Keep building the streak.
+        </p>
+
+    </section>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}
+Leaderboard · Study OS
+{% endblock %}
+
+
+{% block content %}
+
+<header class="page-header">
+
+    <div>
+
+        <div class="eyebrow">
+            STUDY OS / COMMUNITY
+        </div>
+
+        <h1>
+            Leaderboard
+        </h1>
+
+        <p>
+            Compete with your friends.
+        </p>
+
+    </div>
+
+</header>
+
+
+<section class="panel leaderboard">
+
+    {% for person in ranking %}
+
+    <div class="leader-row">
+
+        <div class="rank">
+
+            {% if loop.index == 1 %}
+                🥇
+            {% elif loop.index == 2 %}
+                🥈
+            {% elif loop.index == 3 %}
+                🥉
+            {% else %}
+                #{{ loop.index }}
+            {% endif %}
+
+        </div>
+
+
+        <div class="leader-avatar">
+
+            {{ person.display_name[0]|upper }}
+
+        </div>
+
+
+        <div class="leader-info">
+
+            <strong>
+                {{ person.display_name }}
+            </strong>
+
+            <small>
+                @{{ person.username }}
+            </small>
+
+        </div>
+
+
+        <div class="leader-stats">
+
+            <strong>
+                {{ person.pages|round(1) }}
+            </strong>
+
+            pages
+
+            <span>
+                🔥 {{ person.streak }}
+            </span>
+
+        </div>
+
+    </div>
+
+    {% else %}
+
+    <p>
+        No users yet.
+    </p>
+
+    {% endfor %}
+
+</section>
+
+{% endblock %}

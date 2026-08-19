@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}
+        Study OS
+        {% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            ✦ Study OS
+        </div>
+
+
+        <nav>
+
+            <a href="/">
+                <span>⌂</span>
+                Dashboard
+            </a>
+
+            <a href="/writing">
+                <span>📖</span>
+                Writing
+            </a>
+
+            <a href="#">
+                <span>📚</span>
+                Subjects
+            </a>
+
+            <a href="#">
+                <span>✓</span>
+                Tasks
+            </a>
+
+            <a href="#">
+                <span>⏱</span>
+                Study Timer
+            </a>
+
+            <a href="#">
+                <span>🎯</span>
+                Goals
+            </a>
+
+            <a href="/leaderboard">
+                <span>🏆</span>
+                Leaderboard
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            {% if current_user.is_authenticated %}
+
+            <div class="user-mini">
+
+                <div class="avatar">
+                    {{ current_user.display_name[0]|upper }}
+                </div>
+
+                <div>
+
+                    <strong>
+                        {{ current_user.display_name }}
+                    </strong>
+
+                    <small>
+                        @{{ current_user.username }}
+                    </small>
+
+                </div>
+
+            </div>
+
+            <a href="/logout">
+                Logout
+            </a>
+
+            {% endif %}
+
+        </div>
+
+    </aside>
+
+
+    <main class="main">
+
+        {% with messages =
+            get_flashed_messages()
+        %}
+
+            {% if messages %}
+
+                {% for message in messages %}
+
+                    <div class="flash">
+                        {{ message }}
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+</div>
+
+
+<script
+    src="{{ url_for('static', filename='app.js') }}"
+></script>
+
+</body>
+
+</html>

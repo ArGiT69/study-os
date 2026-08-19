@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}
+Writing · Study OS
+{% endblock %}
+
+
+{% block content %}
+
+<header class="page-header">
+
+    <div>
+
+        <div class="eyebrow">
+            STUDY OS / WRITING
+        </div>
+
+        <h1>
+            Writing
+        </h1>
+
+        <p>
+            Every page counts.
+        </p>
+
+    </div>
+
+
+    <button
+        class="primary-button"
+        onclick="openContribution()"
+    >
+        + Log contribution
+    </button>
+
+</header>
+
+
+<section class="stats-grid">
+
+    <div class="stat-card">
+
+        <span>🔥</span>
+
+        <strong id="writingStreak">
+            —
+        </strong>
+
+        <small>
+            Current streak
+        </small>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <span>🏆</span>
+
+        <strong id="writingBest">
+            —
+        </strong>
+
+        <small>
+            Best streak
+        </small>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <span>📖</span>
+
+        <strong id="writingTotal">
+            —
+        </strong>
+
+        <small>
+            Total pages
+        </small>
+
+    </div>
+
+</section>
+
+
+<section class="panel">
+
+    <div class="panel-header">
+
+        <div>
+
+            <h2>
+                Your contributions
+            </h2>
+
+            <p>
+                Last 365 days
+            </p>
+
+        </div>
+
+
+        <div class="legend">
+
+            Less
+
+            <span class="level-0"></span>
+            <span class="level-1"></span>
+            <span class="level-2"></span>
+            <span class="level-3"></span>
+            <span class="level-4"></span>
+
+            More
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="contributionGraph"
+        class="calendar"
+    ></div>
+
+</section>
+
+
+<section class="panel">
+
+    <h2>
+        Selected day
+    </h2>
+
+    <div
+        id="selectedDay"
+        class="selected-day"
+    >
+        Select a day above.
+    </div>
+
+</section>
+
+
+<!-- MODAL -->
+
+<div
+    id="contributionModal"
+    class="modal hidden"
+>
+
+    <div class="modal-card">
+
+        <button
+            class="modal-close"
+            onclick="closeContribution()"
+        >
+            ×
+        </button>
+
+
+        <div class="eyebrow">
+            WRITING CONTRIBUTION
+        </div>
+
+        <h2>
+            Log your work
+        </h2>
+
+
+        <label>
+            Date
+        </label>
+
+        <input
+            id="contributionDate"
+            type="date"
+        >
+
+
+        <label>
+            Pages written
+        </label>
+
+        <input
+            id="contributionPages"
+            type="number"
+            min="0"
+            step="0.5"
+        >
+
+
+        <label>
+            Subject
+        </label>
+
+        <select id="contributionSubject">
+
+            <option value="">
+                No subject
+            </option>
+
+            {% for subject in subjects %}
+
+            <option
+                value="{{ subject.id }}"
+            >
+                {{ subject.name }}
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+
+        <label>
+            Notes
+        </label>
+
+        <textarea
+            id="contributionNotes"
+            rows="4"
+            placeholder="What did you work on?"
+        ></textarea>
+
+
+        <button
+            class="primary-button"
+            onclick="saveContribution()"
+        >
+            Save contribution
+        </button>
+
+    </div>
+
+</div>
+
+{% endblock %}

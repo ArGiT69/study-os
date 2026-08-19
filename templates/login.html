@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}
+Login · Study OS
+{% endblock %}
+
+
+{% block content %}
+
+<div class="auth-page">
+
+    <div class="auth-card">
+
+        <div class="auth-logo">
+            ✦
+        </div>
+
+        <h1>
+            Welcome back
+        </h1>
+
+        <p>
+            Continue your progress.
+        </p>
+
+
+        <form method="POST">
+
+            <label>
+                Username
+            </label>
+
+            <input
+                name="username"
+                required
+                autocomplete="username"
+            >
+
+
+            <label>
+                Password
+            </label>
+
+            <input
+                type="password"
+                name="password"
+                required
+                autocomplete="current-password"
+            >
+
+
+            <button class="primary-button">
+                Sign in
+            </button>
+
+        </form>
+
+
+        <p class="auth-link">
+
+            Don't have an account?
+
+            <a href="/register">
+                Create one
+            </a>
+
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}

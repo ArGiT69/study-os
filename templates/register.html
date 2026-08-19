@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}
+Create account · Study OS
+{% endblock %}
+
+
+{% block content %}
+
+<div class="auth-page">
+
+    <div class="auth-card">
+
+        <div class="auth-logo">
+            ✦
+        </div>
+
+        <h1>
+            Create your Study OS
+        </h1>
+
+        <p>
+            Start tracking your progress.
+        </p>
+
+
+        <form method="POST">
+
+            <label>
+                Display name
+            </label>
+
+            <input
+                name="display_name"
+                placeholder="Arjit"
+                required
+            >
+
+
+            <label>
+                Username
+            </label>
+
+            <input
+                name="username"
+                placeholder="arjit"
+                required
+            >
+
+
+            <label>
+                Email
+            </label>
+
+            <input
+                type="email"
+                name="email"
+                required
+            >
+
+
+            <label>
+                Password
+            </label>
+
+            <input
+                type="password"
+                name="password"
+                minlength="6"
+                required
+            >
+
+
+            <button class="primary-button">
+                Create account
+            </button>
+
+        </form>
+
+
+        <p class="auth-link">
+
+            Already have an account?
+
+            <a href="/login">
+                Sign in
+            </a>
+
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}
