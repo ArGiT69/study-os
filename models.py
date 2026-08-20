@@ -173,7 +173,6 @@ class StudySession(db.Model):
 
 
 class Task(db.Model):
-
     __tablename__ = "tasks"
 
     id = db.Column(
@@ -217,7 +216,6 @@ class Task(db.Model):
         db.DateTime,
         default=datetime.utcnow
     )
-
 
 class Goal(db.Model):
 
