@@ -992,6 +992,146 @@ def delete_task(task_id):
     return redirect(
         url_for("tasks")
     )
+# ============================================================
+# GOALS
+# ============================================================
+
+@app.route("/goals")
+@login_required
+def goals():
+    goals = Goal.query.filter_by(
+        user_id=current_user.id
+    ).order_by(
+        Goal.completed.asc(),
+        Goal.deadline.asc()
+    ).all()
+
+    return render_template(
+        "goals.html",
+        goals=goals
+    )
+
+
+@app.route("/goals/add", methods=["POST"])
+@login_required
+def add_goal():
+    title = request.form.get("title", "").strip()
+    goal_type = request.form.get(
+        "goal_type",
+        "general"
+    ).strip()
+
+    target_raw = request.form.get(
+        "target",
+        "0"
+    )
+
+    deadline_raw = request.form.get(
+        "deadline",
+        ""
+    )
+
+    if not title:
+        flash("Goal title is required.")
+        return redirect(url_for("goals"))
+
+    try:
+        target = float(target_raw)
+    except (TypeError, ValueError):
+        flash("Target must be a number.")
+        return redirect(url_for("goals"))
+
+    if target <= 0:
+        flash("Target must be greater than zero.")
+        return redirect(url_for("goals"))
+
+    deadline = None
+
+    if deadline_raw:
+        try:
+            deadline = date.fromisoformat(
+                deadline_raw
+            )
+        except ValueError:
+            flash("Invalid deadline.")
+            return redirect(url_for("goals"))
+
+    goal = Goal(
+        user_id=current_user.id,
+        title=title,
+        goal_type=goal_type,
+        target=target,
+        current=0,
+        deadline=deadline
+    )
+
+    db.session.add(goal)
+    db.session.commit()
+
+    flash("Goal created.")
+
+    return redirect(
+        url_for("goals")
+    )
+
+
+@app.route(
+    "/goals/<int:goal_id>/progress",
+    methods=["POST"]
+)
+@login_required
+def update_goal_progress(goal_id):
+
+    goal = Goal.query.filter_by(
+        id=goal_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    try:
+        current = float(
+            request.form.get("current", goal.current)
+        )
+    except (TypeError, ValueError):
+        flash("Invalid progress.")
+        return redirect(url_for("goals"))
+
+    current = max(
+        0,
+        min(current, goal.target)
+    )
+
+    goal.current = current
+
+    if goal.current >= goal.target:
+        goal.completed = True
+
+    db.session.commit()
+
+    return redirect(
+        url_for("goals")
+    )
+
+
+@app.route(
+    "/goals/<int:goal_id>/delete",
+    methods=["POST"]
+)
+@login_required
+def delete_goal(goal_id):
+
+    goal = Goal.query.filter_by(
+        id=goal_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    db.session.delete(goal)
+    db.session.commit()
+
+    flash("Goal deleted.")
+
+    return redirect(
+        url_for("goals")
+    )
 
 # ============================================================
 # RUN
