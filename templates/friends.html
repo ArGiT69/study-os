@@ -155,8 +155,9 @@ Friends · Study OS
 
 
     {% if friends %}
-
     <div class="friend-list">
+
+        {% for friend in friends %}
 
         <div class="friend-card">
 
@@ -165,7 +166,6 @@ Friends · Study OS
             </div>
 
             <div class="friend-info">
-
                 <strong>
                     {{ friend.user.display_name }}
                 </strong>
@@ -175,7 +175,6 @@ Friends · Study OS
                 </small>
 
                 <div class="friend-stats">
-
                     <span>
                         🔥 {{ friend.streak }} day streak
                     </span>
@@ -187,9 +186,7 @@ Friends · Study OS
                     <span>
                         ⏱️ {{ (friend.study_minutes / 60)|round(1) }}h
                     </span>
-
                 </div>
-
             </div>
 
             <div class="friend-actions">
@@ -218,8 +215,9 @@ Friends · Study OS
 
         </div>
 
-    </div>
+        {% endfor %}
 
+    </div>
     {% else %}
 
     <div class="empty-state">
