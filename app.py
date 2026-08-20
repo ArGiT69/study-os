@@ -859,6 +859,139 @@ def save_study_session():
         "ok": True
     })
 
+# ============================================================
+# TASKS
+# ============================================================
+
+@app.route("/tasks")
+@login_required
+def tasks():
+
+    tasks = Task.query.filter_by(
+        user_id=current_user.id
+    ).order_by(
+        Task.completed.asc(),
+        Task.due_date.asc()
+    ).all()
+
+    subjects = Subject.query.filter_by(
+        user_id=current_user.id
+    ).order_by(
+        Subject.name
+    ).all()
+
+    return render_template(
+        "tasks.html",
+        tasks=tasks,
+        subjects=subjects
+    )
+
+
+@app.route("/tasks/add", methods=["POST"])
+@login_required
+def add_task():
+
+    title = request.form.get(
+        "title",
+        ""
+    ).strip()
+
+    if not title:
+        flash("Task title is required.")
+        return redirect(url_for("tasks"))
+
+    due_date = None
+
+    due_date_value = request.form.get(
+        "due_date",
+        ""
+    )
+
+    if due_date_value:
+
+        try:
+            due_date = date.fromisoformat(
+                due_date_value
+            )
+
+        except ValueError:
+
+            flash("Invalid due date.")
+            return redirect(
+                url_for("tasks")
+            )
+
+    subject_id = get_owned_subject_id(
+        request.form.get("subject_id"),
+        current_user.id
+    )
+
+    priority = request.form.get(
+        "priority",
+        "normal"
+    )
+
+    if priority not in (
+        "low",
+        "normal",
+        "high"
+    ):
+        priority = "normal"
+
+    task = Task(
+        user_id=current_user.id,
+        title=title,
+        subject_id=subject_id,
+        due_date=due_date,
+        priority=priority
+    )
+
+    db.session.add(task)
+    db.session.commit()
+
+    flash("Task added.")
+
+    return redirect(
+        url_for("tasks")
+    )
+
+
+@app.route("/tasks/<int:task_id>/toggle", methods=["POST"])
+@login_required
+def toggle_task(task_id):
+
+    task = Task.query.filter_by(
+        id=task_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    task.completed = not task.completed
+
+    db.session.commit()
+
+    return redirect(
+        url_for("tasks")
+    )
+
+
+@app.route("/tasks/<int:task_id>/delete", methods=["POST"])
+@login_required
+def delete_task(task_id):
+
+    task = Task.query.filter_by(
+        id=task_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    db.session.delete(task)
+
+    db.session.commit()
+
+    flash("Task deleted.")
+
+    return redirect(
+        url_for("tasks")
+    )
 
 # ============================================================
 # RUN
