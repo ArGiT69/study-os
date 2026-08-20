@@ -35,7 +35,8 @@ from models import (
     StudySession,
     Task,
     Goal,
-    Friendship
+    Friendship,
+    Activity
 )
 
 
@@ -252,6 +253,24 @@ def get_owned_subject_id(value, user_id):
 
     return subject.id if subject else None
 
+def create_activity(
+    user_id,
+    activity_type,
+    title,
+    description="",
+    icon="📚"
+):
+    activity = Activity(
+        user_id=user_id,
+        activity_type=activity_type,
+        title=title,
+        description=description,
+        icon=icon
+    )
+
+    db.session.add(activity)
+
+    return activity
 
 # ============================================================
 # AUTH
@@ -1048,6 +1067,7 @@ def add_task():
         request.form.get("subject_id"),
         current_user.id
     )
+    
 
     # -------------------------
     # Due date

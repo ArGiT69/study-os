@@ -303,3 +303,46 @@ class Friendship(db.Model):
             name="unique_friend_request"
         ),
     )
+
+
+class Activity(db.Model):
+    __tablename__ = "activities"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+
+    activity_type = db.Column(
+        db.String(50),
+        nullable=False
+    )
+
+    title = db.Column(
+        db.String(200),
+        nullable=False
+    )
+
+    description = db.Column(
+        db.Text,
+        default=""
+    )
+
+    icon = db.Column(
+        db.String(10),
+        default="📚"
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+        index=True
+    )
