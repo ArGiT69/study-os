@@ -675,22 +675,27 @@ def save_contribution():
             db.session.add(entry)
 
 
-        entry.pages = pages
+    entry.pages = pages
+    entry.notes = data.get(
+    "notes",
+    ""
+)
+    entry.subject_id = subject_id
 
-        entry.notes = data.get(
-            "notes",
-            ""
-        )
-
-        entry.subject_id = subject_id
-
+    create_activity(
+        current_user.id,
+        "writing",
+        f"Wrote {pages:g} pages",
+        "Made progress on their studies.",
+        "📖"
+    )
 
     db.session.commit()
-
 
     return jsonify({
         "ok": True
     })
+
 # ============================================================
 # SUBJECTS
 # ============================================================
@@ -1146,6 +1151,15 @@ def toggle_task(task_id):
 
     task.completed = not task.completed
 
+    if task.completed:
+        create_activity(
+            current_user.id,
+            "task",
+            f"Completed: {task.title}",
+            "Finished a study task.",
+            "✅"
+        )
+
     db.session.commit()
 
     return redirect(
@@ -1490,91 +1504,74 @@ def reject_friend_request(friendship_id):
 @app.route("/friends/page")
 @login_required
 def friends_page():
-
     accepted = Friendship.query.filter(
         (
-            (
-                Friendship.requester_id
-                == current_user.id
-            )
+            (Friendship.requester_id == current_user.id)
             |
-            (
-                Friendship.addressee_id
-                == current_user.id
-            )
+            (Friendship.addressee_id == current_user.id)
         ),
         Friendship.status == "accepted"
     ).all()
 
-
     friend_ids = []
 
     for friendship in accepted:
-
-        if (
-            friendship.requester_id
-            == current_user.id
-        ):
-            friend_ids.append(
-                friendship.addressee_id
-            )
-
+        if friendship.requester_id == current_user.id:
+            friend_ids.append(friendship.addressee_id)
         else:
-            friend_ids.append(
-                friendship.requester_id
-            )
-
+            friend_ids.append(friendship.requester_id)
 
     friends_list = []
 
     if friend_ids:
-
-        friends_list = User.query.filter(
+        users = User.query.filter(
             User.id.in_(friend_ids)
         ).order_by(
             User.username
         ).all()
 
+        for friend in users:
 
+            # Study statistics
+            pages = total_pages(friend.id)
+
+            streak = current_streak(friend.id)
+
+            study_minutes = db.session.query(
+                db.func.sum(StudySession.minutes)
+            ).filter(
+                StudySession.user_id == friend.id
+            ).scalar() or 0
+
+            friends_list.append({
+                "user": friend,
+                "pages": pages,
+                "streak": streak,
+                "study_minutes": study_minutes
+            })
+
+    # Pending requests
     pending = Friendship.query.filter_by(
         addressee_id=current_user.id,
         status="pending"
     ).all()
 
-
     pending_users = []
 
     for friendship in pending:
-
         user = db.session.get(
             User,
             friendship.requester_id
         )
 
         if user:
-
-            pending_users.append(
-                {
-                    "friendship": friendship,
-                    "user": user
-                }
-            )
-
+            pending_users.append({
+                "friendship": friendship,
+                "user": user
+            })
 
     return render_template(
         "friends.html",
         friends=friends_list,
         pending=pending_users
-    )
-
-# ============================================================
-# RUN
-# ============================================================
-
-if __name__ == "__main__":
-
-    app.run(
-        host="127.0.0.1",
-        port=5000,
-        debug=os.getenv("FLASK_DEBUG", "0") == "1"
     )

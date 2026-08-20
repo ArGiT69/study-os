@@ -37,19 +37,11 @@ Friends · Study OS
 
     <div class="friend-search">
 
-        <input
-            type="text"
-            id="friendSearch"
-            placeholder="Search username..."
-            autocomplete="off"
-        >
+        <input type="text" id="friendSearch" placeholder="Search username..." autocomplete="off">
 
     </div>
 
-    <div
-        id="searchResults"
-        class="friend-search-results"
-    ></div>
+    <div id="searchResults" class="friend-search-results"></div>
 
 </section>
 
@@ -73,80 +65,68 @@ Friends · Study OS
 
     {% if pending %}
 
-        <div class="friend-list">
+    <div class="friend-list">
 
-            {% for item in pending %}
+        {% for item in pending %}
 
-                <div class="friend-card">
+        <div class="friend-card">
 
-                    <div class="friend-avatar">
-                        {{ item.user.display_name[0]|upper }}
-                    </div>
-
-
-                    <div class="friend-info">
-
-                        <strong>
-                            {{ item.user.display_name }}
-                        </strong>
-
-                        <small>
-                            @{{ item.user.username }}
-                        </small>
-
-                    </div>
+            <div class="friend-avatar">
+                {{ item.user.display_name[0]|upper }}
+            </div>
 
 
-                    <div class="friend-actions">
+            <div class="friend-info">
 
-                        <form
-                            method="POST"
-                            action="{{ url_for(
+                <strong>
+                    {{ item.user.display_name }}
+                </strong>
+
+                <small>
+                    @{{ item.user.username }}
+                </small>
+
+            </div>
+
+
+            <div class="friend-actions">
+
+                <form method="POST" action="{{ url_for(
                                 'accept_friend_request',
                                 friendship_id=item.friendship.id
-                            ) }}"
-                        >
+                            ) }}">
 
-                            <button
-                                type="submit"
-                                class="primary-button small-button"
-                            >
-                                Accept
-                            </button>
+                    <button type="submit" class="primary-button small-button">
+                        Accept
+                    </button>
 
-                        </form>
+                </form>
 
 
-                        <form
-                            method="POST"
-                            action="{{ url_for(
+                <form method="POST" action="{{ url_for(
                                 'reject_friend_request',
                                 friendship_id=item.friendship.id
-                            ) }}"
-                        >
+                            ) }}">
 
-                            <button
-                                type="submit"
-                                class="secondary-button small-button"
-                            >
-                                Reject
-                            </button>
+                    <button type="submit" class="secondary-button small-button">
+                        Reject
+                    </button>
 
-                        </form>
+                </form>
 
-                    </div>
-
-                </div>
-
-            {% endfor %}
+            </div>
 
         </div>
 
+        {% endfor %}
+
+    </div>
+
     {% else %}
 
-        <p class="empty-state">
-            No pending friend requests.
-        </p>
+    <p class="empty-state">
+        No pending friend requests.
+    </p>
 
     {% endif %}
 
@@ -176,85 +156,82 @@ Friends · Study OS
 
     {% if friends %}
 
-        <div class="friend-list">
+    <div class="friend-list">
 
-            {% for friend in friends %}
+        <div class="friend-card">
 
-                <div class="friend-card">
+            <div class="friend-avatar">
+                {{ friend.user.display_name[0]|upper }}
+            </div>
 
-                    <div class="friend-avatar">
+            <div class="friend-info">
 
-                        {{ friend.display_name[0]|upper }}
+                <strong>
+                    {{ friend.user.display_name }}
+                </strong>
 
-                    </div>
+                <small>
+                    @{{ friend.user.username }}
+                </small>
 
+                <div class="friend-stats">
 
-                    <div class="friend-info">
+                    <span>
+                        🔥 {{ friend.streak }} day streak
+                    </span>
 
-                        <strong>
-                            {{ friend.display_name }}
-                        </strong>
+                    <span>
+                        📚 {{ friend.pages|round(1) }} pages
+                    </span>
 
-                        <small>
-                            @{{ friend.username }}
-                        </small>
-
-                    </div>
-
-
-                    <div class="friend-actions">
-
-                        <a
-                            href="{{ url_for(
-                                'friend_profile',
-                                user_id=friend.id
-                            ) }}"
-                            class="secondary-button small-button"
-                        >
-                            View profile
-                        </a>
-
-
-                        <form
-                            method="POST"
-                            action="{{ url_for(
-                                'remove_friend',
-                                user_id=friend.id
-                            ) }}"
-                            onsubmit="return confirm(
-                                'Remove this friend?'
-                            );"
-                        >
-
-                            <button
-                                type="submit"
-                                class="danger-button small-button"
-                            >
-                                Remove
-                            </button>
-
-                        </form>
-
-                    </div>
+                    <span>
+                        ⏱️ {{ (friend.study_minutes / 60)|round(1) }}h
+                    </span>
 
                 </div>
 
-            {% endfor %}
+            </div>
+
+            <div class="friend-actions">
+
+                <a href="{{ url_for(
+                'friend_profile',
+                user_id=friend.user.id
+            ) }}" class="secondary-button small-button">
+                    View profile
+                </a>
+
+                <form method="POST" action="{{ url_for(
+                'remove_friend',
+                user_id=friend.user.id
+            ) }}" onsubmit="return confirm(
+                'Remove this friend?'
+            );">
+
+                    <button type="submit" class="danger-button small-button">
+                        Remove
+                    </button>
+
+                </form>
+
+            </div>
 
         </div>
+
+    </div>
 
     {% else %}
 
-        <div class="empty-state">
+    <div class="empty-state">
 
-            <h3>No friends yet</h3>
+        <h3>No friends yet</h3>
 
-            <p>
-                Search for classmates above and start building
-                your study network.
-            </p>
+        <p>
+            Search for classmates above and start building
+            your study network.
+        </p>
 
-        </div>
+    </div>
 
     {% endif %}
 
@@ -263,69 +240,69 @@ Friends · Study OS
 
 <script>
 
-const searchInput =
-    document.getElementById("friendSearch");
+    const searchInput =
+        document.getElementById("friendSearch");
 
-const results =
-    document.getElementById("searchResults");
-
-
-let searchTimeout = null;
+    const results =
+        document.getElementById("searchResults");
 
 
-searchInput.addEventListener("input", function () {
-
-    clearTimeout(searchTimeout);
-
-    const query = searchInput.value.trim();
-
-    if (!query) {
-
-        results.innerHTML = "";
-
-        return;
-    }
+    let searchTimeout = null;
 
 
-    searchTimeout = setTimeout(
-        () => searchUsers(query),
-        250
-    );
+    searchInput.addEventListener("input", function () {
 
-});
+        clearTimeout(searchTimeout);
 
+        const query = searchInput.value.trim();
 
-async function searchUsers(query) {
+        if (!query) {
 
-    try {
-
-        const response = await fetch(
-            `/friends/search?q=${encodeURIComponent(query)}`
-        );
-
-        const users = await response.json();
-
-
-        if (!users.length) {
-
-            results.innerHTML = `
-                <div class="search-empty">
-                    No students found.
-                </div>
-            `;
+            results.innerHTML = "";
 
             return;
         }
 
 
-        results.innerHTML = users.map(user => `
+        searchTimeout = setTimeout(
+            () => searchUsers(query),
+            250
+        );
+
+    });
+
+
+    async function searchUsers(query) {
+
+        try {
+
+            const response = await fetch(
+                `/friends/search?q=${encodeURIComponent(query)}`
+            );
+
+            const users = await response.json();
+
+
+            if (!users.length) {
+
+                results.innerHTML = `
+                <div class="search-empty">
+                    No students found.
+                </div>
+            `;
+
+                return;
+            }
+
+
+            results.innerHTML = users.map(user => `
 
             <div class="search-user">
 
                 <div class="friend-avatar">
                     ${escapeHtml(
-                        user.display_name.charAt(0).toUpperCase()
-                    )}
+                user.display_name.charAt(0).toUpperCase()
+            )}
                 </div>
 
                 <div class="friend-info">
@@ -358,27 +335,27 @@ async function searchUsers(query) {
 
         `).join("");
 
-    } catch (error) {
+        } catch (error) {
 
-        console.error(error);
+            console.error(error);
 
-        results.innerHTML = `
+            results.innerHTML = `
             <div class="search-empty">
                 Could not search right now.
             </div>
         `;
+        }
     }
-}
 
 
-function escapeHtml(value) {
+    function escapeHtml(value) {
 
-    const div = document.createElement("div");
+        const div = document.createElement("div");
 
-    div.textContent = value;
+        div.textContent = value;
 
-    return div.innerHTML;
-}
+        return div.innerHTML;
+    }
 
 </script>
 

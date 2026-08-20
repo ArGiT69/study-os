@@ -1430,3 +1430,17 @@ select:focus {
     }
 
 }
+.friend-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.friend-stats span {
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: var(--surface-2);
+    padding: 4px 8px;
+    border-radius: 999px;
+}
