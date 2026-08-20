@@ -204,12 +204,14 @@ class Task(db.Model):
 
     priority = db.Column(
         db.String(20),
-        default="normal"
+        default="normal",
+        nullable=False
     )
 
     completed = db.Column(
         db.Boolean,
-        default=False
+        default=False,
+        nullable=False
     )
 
     created_at = db.Column(

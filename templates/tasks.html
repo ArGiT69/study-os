@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}
+Tasks · Study OS
+{% endblock %}
+
+{% block content %}
+
+<header class="page-header">
+    <div>
+        <div class="eyebrow">
+            STUDY OS / TASKS
+        </div>
+
+        <h1>Tasks</h1>
+
+        <p>
+            Know what needs to get done.
+        </p>
+    </div>
+</header>
+
+
+<section class="panel">
+
+    <h2>Add task</h2>
+
+    <form method="POST" action="{{ url_for('add_task') }}" class="task-form">
+
+        <input type="text" name="title" placeholder="e.g. Finish Physics chapter 3" required>
+
+        <select name="subject_id">
+
+            <option value="">
+                No subject
+            </option>
+
+            {% for subject in subjects %}
+
+            <option value="{{ subject.id }}">
+                {{ subject.name }}
+            </option>
+
+            {% endfor %}
+
+        </select>
+        {% include "add_subject.html" %}
+        <input type="date" name="due_date">
+
+        <select name="priority">
+
+            <option value="low">
+                Low priority
+            </option>
+
+            <option value="normal" selected>
+                Normal priority
+            </option>
+
+            <option value="high">
+                High priority
+            </option>
+
+        </select>
+
+        <button type="submit" class="primary-button">
+            + Add task
+        </button>
+
+    </form>
+
+</section>
+
+
+<section class="panel">
+
+    <div class="panel-header">
+
+        <div>
+
+            <h2>Your tasks</h2>
+
+            <p>
+                Finish today's work before tomorrow's work.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    {% if tasks %}
+
+    <div class="task-list">
+
+        {% for task in tasks %}
+
+        <div class="task-item {% if task.completed %}completed{% endif %}">
+
+            <form method="POST" action="{{ url_for('toggle_task', task_id=task.id) }}">
+
+                <button type="submit" class="task-check">
+                    {% if task.completed %}
+                    ✓
+                    {% else %}
+                    ○
+                    {% endif %}
+                </button>
+
+            </form>
+
+
+            <div class="task-content">
+
+                <strong>
+                    {{ task.title }}
+                </strong>
+
+                <small>
+
+                    {% if task.due_date %}
+
+                    Due:
+                    {{ task.due_date.strftime("%b %d, %Y") }}
+
+                    {% else %}
+
+                    No deadline
+
+                    {% endif %}
+
+                    ·
+
+                    {{ task.priority|capitalize }}
+
+                </small>
+
+            </div>
+
+
+            <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}">
+
+                <button type="submit" class="task-delete">
+                    ×
+                </button>
+
+            </form>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <p>
+        No tasks yet. Add your first one above.
+    </p>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

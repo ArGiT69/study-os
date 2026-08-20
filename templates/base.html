@@ -41,30 +41,39 @@
                     Writing
                 </a>
 
-                <a href="#">
-                    <span>📚</span>
-                    Subjects
-                </a>
+                <nav>
 
-                <a href="{{ url_for('tasks') }}">
-                    <span>✓</span>
-                    Tasks
-                </a>
+                    <a href="#">
+                        <span>📚</span>
+                        Subjects
+                    </a>
 
-                <a href="#">
-                    <span>⏱</span>
-                    Study Timer
-                </a>
+                    <a href="{{ url_for('tasks') }}">
+                        <span>✓</span>
+                        Tasks
+                    </a>
 
-                <a href="#">
-                    <span>🎯</span>
-                    Goals
-                </a>
+                    <a href="{{ url_for('timer') }}">
+                        <span>⏱️</span>
+                        Study Timer
+                    </a>
 
-                <a href="/leaderboard">
-                    <span>🏆</span>
-                    Leaderboard
-                </a>
+                    <a href="{{ url_for('goals') }}">
+                        <span>🎯</span>
+                        Goals
+                    </a>
+
+                    <a href="{{ url_for('friends_page') }}">
+                        <span>👥</span>
+                        Friends
+                    </a>
+
+                    <a href="/leaderboard">
+                        <span>🏆</span>
+                        Leaderboard
+                    </a>
+
+                </nav>
 
             </nav>
 

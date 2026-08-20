@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}
+Goals · Study OS
+{% endblock %}
+
+{% block content %}
+
+<header class="page-header">
+
+    <div>
+        <div class="eyebrow">
+            STUDY OS / GOALS
+        </div>
+
+        <h1>Goals</h1>
+
+        <p>
+            Turn big academic goals into measurable progress.
+        </p>
+    </div>
+
+</header>
+
+
+<section class="panel">
+
+    <h2>Create a goal</h2>
+
+    <form
+        method="POST"
+        action="{{ url_for('add_goal') }}"
+        class="goal-form"
+    >
+
+        <input
+            type="text"
+            name="title"
+            placeholder="e.g. Finish Physics Part 1"
+            required
+        >
+
+        <select name="goal_type">
+
+            <option value="academic">
+                Academic
+            </option>
+
+            <option value="study_hours">
+                Study Hours
+            </option>
+
+            <option value="chapters">
+                Chapters
+            </option>
+
+            <option value="general">
+                General
+            </option>
+
+        </select>
+
+        <input
+            type="number"
+            name="target"
+            min="1"
+            step="0.1"
+            placeholder="Target"
+            required
+        >
+
+        <input
+            type="date"
+            name="deadline"
+        >
+
+        <button
+            type="submit"
+            class="primary-button"
+        >
+            + Create Goal
+        </button>
+
+    </form>
+
+</section>
+
+
+<section class="panel">
+
+    <h2>Your goals</h2>
+
+    {% if goals %}
+
+        <div class="goal-list">
+
+            {% for goal in goals %}
+
+                {% set percentage =
+                    ((goal.current / goal.target) * 100)
+                    if goal.target > 0
+                    else 0
+                %}
+
+                {% if percentage > 100 %}
+                    {% set percentage = 100 %}
+                {% endif %}
+
+                {% set percentage_value = percentage|round(1) %}
+
+                <div class="goal-card">
+
+                    <div class="goal-card-header">
+
+                        <div>
+
+                            <h3>
+                                {{ goal.title }}
+                            </h3>
+
+                            <small>
+                                {{ goal.goal_type|replace("_", " ")|title }}
+
+                                {% if goal.deadline %}
+                                    · Due
+                                    {{ goal.deadline.strftime("%b %d, %Y") }}
+                                {% endif %}
+                            </small>
+
+                        </div>
+
+                        <strong>
+                            {{ "%.0f"|format(percentage) }}%
+                        </strong>
+
+                    </div>
+
+
+                    <div class="progress-bar">
+
+                        <div
+                            class="progress-fill"
+                            data-progress="{{ percentage_value }}"
+                        ></div>
+
+                    </div>
+
+
+                    <div class="goal-progress">
+
+                        <span>
+                            {{ goal.current|round(1) }}
+                            / {{ goal.target }}
+                        </span>
+
+                        {% if goal.completed %}
+
+                            <span>
+                                ✓ Completed
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    {% if not goal.completed %}
+
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'update_goal_progress',
+                                goal_id=goal.id
+                            ) }}"
+                            class="goal-progress-form"
+                        >
+
+                            <input
+                                type="number"
+                                name="current"
+                                min="0"
+                                max="{{ goal.target }}"
+                                step="0.1"
+                                value="{{ goal.current }}"
+                            >
+
+                            <button type="submit">
+                                Update
+                            </button>
+
+                        </form>
+
+                    {% endif %}
+
+
+                    <form
+                        method="POST"
+                        action="{{ url_for(
+                            'delete_goal',
+                            goal_id=goal.id
+                        ) }}"
+                    >
+
+                        <button type="submit">
+                            Delete
+                        </button>
+
+                    </form>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p>
+            You haven't created any goals yet.
+        </p>
+
+    {% endif %}
+
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.progress-fill').forEach(function (bar) {
+            const progress = Number(bar.dataset.progress || 0);
+            bar.style.width = progress + '%';
+        });
+    });
+</script>
+
+{% endblock %}

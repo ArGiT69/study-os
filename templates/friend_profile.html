@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ friend.display_name }} · Study OS
+{% endblock %}
+
+{% block content %}
+
+<header class="page-header">
+
+    <div>
+
+        <div class="eyebrow">
+            STUDY OS / PROFILE
+        </div>
+
+        <h1>
+            {{ friend.display_name }}
+        </h1>
+
+        <p>
+            @{{ friend.username }}
+        </p>
+
+    </div>
+
+</header>
+
+
+<section class="profile-card">
+
+    <div class="large-avatar">
+
+        {{ friend.display_name[0]|upper }}
+
+    </div>
+
+
+    <div class="profile-info">
+
+        <h2>
+            {{ friend.display_name }}
+        </h2>
+
+        <p>
+            @{{ friend.username }}
+        </p>
+
+    </div>
+
+</section>
+
+
+<!-- STATS -->
+
+<section class="stats-grid">
+
+    <div class="stat-card">
+
+        <span>🔥</span>
+
+        <strong>
+            {{ streak }}
+        </strong>
+
+        <small>
+            Current streak
+        </small>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <span>🏆</span>
+
+        <strong>
+            {{ best }}
+        </strong>
+
+        <small>
+            Best streak
+        </small>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <span>📖</span>
+
+        <strong>
+            {{ pages|round(1) }}
+        </strong>
+
+        <small>
+            Pages written
+        </small>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <span>⏱️</span>
+
+        <strong>
+            {{ (study_minutes / 60)|round(1) }}
+        </strong>
+
+        <small>
+            Study hours
+        </small>
+
+    </div>
+
+</section>
+
+
+<!-- SUBJECT PROGRESS -->
+
+<section class="panel">
+
+    <div class="panel-header">
+
+        <div>
+
+            <h2>
+                Subject activity
+            </h2>
+
+            <p>
+                Pages written by subject.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    {% if subject_stats %}
+
+        <div class="subject-stats">
+
+            {% for subject in subject_stats %}
+
+                <div class="subject-stat">
+
+                    <div class="subject-stat-top">
+
+                        <strong>
+                            {{ subject.name }}
+                        </strong>
+
+                        <span>
+                            {{ subject.pages|round(1) }} pages
+                        </span>
+
+                    </div>
+
+
+                    <div class="subject-bar">
+
+                        {% if pages > 0 %}
+
+                            {% set percentage =
+                                (subject.pages / pages * 100)
+                            %}
+
+                        {% else %}
+
+                            {% set percentage = 0 %}
+
+                        {% endif %}
+
+                        <div
+                            class="subject-bar-fill"
+                            data-progress="{{ percentage }}"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p>
+            No subject activity yet.
+        </p>
+
+    {% endif %}
+
+</section>
+
+
+<section class="panel">
+
+    <a
+        href="{{ url_for('friends_page') }}"
+        class="secondary-button"
+    >
+        ← Back to friends
+    </a>
+
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.subject-bar-fill').forEach(function (bar) {
+            const progress = Number(bar.dataset.progress || 0);
+            bar.style.width = progress + '%';
+        });
+    });
+</script>
+
+{% endblock %}

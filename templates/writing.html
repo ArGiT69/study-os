@@ -26,10 +26,7 @@ Writing · Study OS
     </div>
 
 
-    <button
-        class="primary-button"
-        onclick="openContribution()"
-    >
+    <button class="primary-button" onclick="openContribution()">
         + Log contribution
     </button>
 
@@ -119,10 +116,7 @@ Writing · Study OS
     </div>
 
 
-    <div
-        id="contributionGraph"
-        class="calendar"
-    ></div>
+    <div id="contributionGraph" class="calendar"></div>
 
 </section>
 
@@ -133,10 +127,7 @@ Writing · Study OS
         Selected day
     </h2>
 
-    <div
-        id="selectedDay"
-        class="selected-day"
-    >
+    <div id="selectedDay" class="selected-day">
         Select a day above.
     </div>
 
@@ -145,17 +136,11 @@ Writing · Study OS
 
 <!-- MODAL -->
 
-<div
-    id="contributionModal"
-    class="modal hidden"
->
+<div id="contributionModal" class="modal hidden">
 
     <div class="modal-card">
 
-        <button
-            class="modal-close"
-            onclick="closeContribution()"
-        >
+        <button class="modal-close" onclick="closeContribution()">
             ×
         </button>
 
@@ -173,22 +158,14 @@ Writing · Study OS
             Date
         </label>
 
-        <input
-            id="contributionDate"
-            type="date"
-        >
+        <input id="contributionDate" type="date">
 
 
         <label>
             Pages written
         </label>
 
-        <input
-            id="contributionPages"
-            type="number"
-            min="0"
-            step="0.5"
-        >
+        <input id="contributionPages" type="number" min="0" step="0.5">
 
 
         <label>
@@ -203,32 +180,23 @@ Writing · Study OS
 
             {% for subject in subjects %}
 
-            <option
-                value="{{ subject.id }}"
-            >
+            <option value="{{ subject.id }}">
                 {{ subject.name }}
             </option>
 
             {% endfor %}
 
         </select>
-
+        {% include "add_subject.html" %}
 
         <label>
             Notes
         </label>
 
-        <textarea
-            id="contributionNotes"
-            rows="4"
-            placeholder="What did you work on?"
-        ></textarea>
+        <textarea id="contributionNotes" rows="4" placeholder="What did you work on?"></textarea>
 
 
-        <button
-            class="primary-button"
-            onclick="saveContribution()"
-        >
+        <button class="primary-button" onclick="saveContribution()">
             Save contribution
         </button>
 

@@ -1,0 +1,67 @@
+<button
+    type="button"
+    class="secondary-button add-subject-button"
+    onclick="addNewSubject()"
+>
+    + Add new subject
+</button>
+
+<script>
+async function addNewSubject() {
+    const name = prompt("Enter the new subject name:");
+
+    if (!name || !name.trim()) {
+        return;
+    }
+
+    const subjectName = name.trim();
+
+    try {
+        const response = await fetch("/subjects/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: subjectName
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.error || "Could not add subject.");
+            return;
+        }
+
+        // Add the new subject to every subject dropdown
+        document
+            .querySelectorAll("select")
+            .forEach(select => {
+
+                // Only modify dropdowns that contain subject options
+                if (
+                    select.id === "subject" ||
+                    select.id === "contributionSubject" ||
+                    select.name === "subject_id"
+                ) {
+                    const option = document.createElement("option");
+
+                    option.value = data.id;
+                    option.textContent = data.name;
+
+                    select.appendChild(option);
+
+                    // Automatically select the new subject
+                    select.value = data.id;
+                }
+            });
+
+        alert(`"${data.name}" added successfully!`);
+
+    } catch (error) {
+        console.error(error);
+        alert("Something went wrong while adding the subject.");
+    }
+}
+</script>

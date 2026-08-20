@@ -672,8 +672,57 @@ def save_contribution():
     return jsonify({
         "ok": True
     })
+# ============================================================
+# SUBJECTS
+# ============================================================
 
+@app.route("/subjects/add", methods=["POST"])
+@login_required
+def add_subject():
+    data = request.get_json(silent=True)
 
+    if not isinstance(data, dict):
+        return jsonify({
+            "error": "Invalid request."
+        }), 400
+
+    name = data.get("name", "").strip()
+
+    if not name:
+        return jsonify({
+            "error": "Subject name is required."
+        }), 400
+
+    if len(name) > 80:
+        return jsonify({
+            "error": "Subject name is too long."
+        }), 400
+
+    # Check if this user already has this subject
+    existing = Subject.query.filter_by(
+        user_id=current_user.id,
+        name=name
+    ).first()
+
+    if existing:
+        return jsonify({
+            "error": "You already have this subject."
+        }), 400
+
+    subject = Subject(
+        user_id=current_user.id,
+        name=name,
+        color="#8b9bb4"
+    )
+
+    db.session.add(subject)
+    db.session.commit()
+
+    return jsonify({
+        "ok": True,
+        "id": subject.id,
+        "name": subject.name
+    })
 # ============================================================
 # LEADERBOARD
 # ============================================================
@@ -726,64 +775,154 @@ def leaderboard():
 
 
 # ============================================================
-# FRIENDS
+# FRIEND PROFILE
 # ============================================================
 
-@app.route("/friends")
+@app.route("/friends/profile/<int:user_id>")
 @login_required
-def friends():
+def friend_profile(user_id):
 
-    friendships = Friendship.query.filter(
+    # Cannot view yourself through friend profile
+    if user_id == current_user.id:
+        return redirect(url_for("dashboard"))
+
+    friend = db.session.get(User, user_id)
+
+    if not friend:
+        flash("User not found.")
+        return redirect(url_for("friends_page"))
+
+    # Check that the two users are actually friends
+    friendship = Friendship.query.filter(
         (
-            (Friendship.requester_id ==
-             current_user.id)
-            |
-            (Friendship.addressee_id ==
-             current_user.id)
-        ),
+            (
+                Friendship.requester_id == current_user.id
+            )
+            &
+            (
+                Friendship.addressee_id == user_id
+            )
+        )
+        |
+        (
+            (
+                Friendship.requester_id == user_id
+            )
+            &
+            (
+                Friendship.addressee_id == current_user.id
+            )
+        )
+    ).filter(
         Friendship.status == "accepted"
+    ).first()
+
+    if not friendship:
+        flash("You can only view profiles of your friends.")
+        return redirect(url_for("friends_page"))
+
+    # Total pages
+    pages = total_pages(friend.id)
+
+    # Current streak
+    streak = current_streak(friend.id)
+
+    # Best streak
+    best = best_streak(friend.id)
+
+    # Total study minutes
+    study_minutes = db.session.query(
+        db.func.sum(StudySession.minutes)
+    ).filter(
+        StudySession.user_id == friend.id
+    ).scalar() or 0
+
+    # Friend's subjects
+    subjects = Subject.query.filter_by(
+        user_id=friend.id
+    ).order_by(
+        Subject.name
     ).all()
 
+    # Pages by subject
+    subject_stats = []
 
-    friend_ids = []
+    for subject in subjects:
 
-    for friendship in friendships:
+        subject_pages = db.session.query(
+            db.func.sum(Contribution.pages)
+        ).filter(
+            Contribution.user_id == friend.id,
+            Contribution.subject_id == subject.id
+        ).scalar() or 0
 
-        if friendship.requester_id == \
-                current_user.id:
+        subject_stats.append({
+            "name": subject.name,
+            "color": subject.color,
+            "pages": subject_pages
+        })
 
-            friend_ids.append(
-                friendship.addressee_id
+    return render_template(
+        "friend_profile.html",
+        friend=friend,
+        pages=pages,
+        streak=streak,
+        best=best,
+        study_minutes=study_minutes,
+        subject_stats=subject_stats
+    )
+# ============================================================
+# REMOVE FRIEND
+# ============================================================
+
+@app.route(
+    "/friends/remove/<int:user_id>",
+    methods=["POST"]
+)
+@login_required
+def remove_friend(user_id):
+
+    friendship = Friendship.query.filter(
+        (
+            (
+                Friendship.requester_id == current_user.id
             )
-
-        else:
-
-            friend_ids.append(
-                friendship.requester_id
+            &
+            (
+                Friendship.addressee_id == user_id
             )
+        )
+        |
+        (
+            (
+                Friendship.requester_id == user_id
+            )
+            &
+            (
+                Friendship.addressee_id == current_user.id
+            )
+        )
+    ).filter(
+        Friendship.status == "accepted"
+    ).first()
 
+    if not friendship:
 
-    friends_list = User.query.filter(
-        User.id.in_(friend_ids)
-    ).all()
+        flash("Friendship not found.")
 
+        return redirect(
+            url_for("friends_page")
+        )
 
-    return jsonify([
+    db.session.delete(friendship)
 
-        {
-            "username":
-                friend.username,
+    db.session.commit()
 
-            "display_name":
-                friend.display_name
+    flash("Friend removed.")
 
-        }
-
-        for friend in friends_list
-
-    ])
-
-
+    return redirect(
+        url_for("friends_page")
+    )
 # ============================================================
 # STUDY SESSION
 # ============================================================
@@ -866,23 +1005,27 @@ def save_study_session():
 @app.route("/tasks")
 @login_required
 def tasks():
+    user_tasks = (
+        Task.query
+        .filter_by(user_id=current_user.id)
+        .order_by(
+            Task.completed.asc(),
+            Task.due_date.asc(),
+            Task.created_at.desc()
+        )
+        .all()
+    )
 
-    tasks = Task.query.filter_by(
-        user_id=current_user.id
-    ).order_by(
-        Task.completed.asc(),
-        Task.due_date.asc()
-    ).all()
-
-    subjects = Subject.query.filter_by(
-        user_id=current_user.id
-    ).order_by(
-        Subject.name
-    ).all()
+    subjects = (
+        Subject.query
+        .filter_by(user_id=current_user.id)
+        .order_by(Subject.name.asc())
+        .all()
+    )
 
     return render_template(
         "tasks.html",
-        tasks=tasks,
+        tasks=user_tasks,
         subjects=subjects
     )
 
@@ -891,79 +1034,95 @@ def tasks():
 @login_required
 def add_task():
 
-    title = request.form.get(
-        "title",
-        ""
-    ).strip()
+    title = request.form.get("title", "").strip()
 
     if not title:
         flash("Task title is required.")
         return redirect(url_for("tasks"))
 
-    due_date = None
-
-    due_date_value = request.form.get(
-        "due_date",
-        ""
-    )
-
-    if due_date_value:
-
-        try:
-            due_date = date.fromisoformat(
-                due_date_value
-            )
-
-        except ValueError:
-
-            flash("Invalid due date.")
-            return redirect(
-                url_for("tasks")
-            )
+    # -------------------------
+    # Subject
+    # -------------------------
 
     subject_id = get_owned_subject_id(
         request.form.get("subject_id"),
         current_user.id
     )
 
+    # -------------------------
+    # Due date
+    # -------------------------
+
+    due_date = None
+
+    due_date_value = request.form.get(
+        "due_date",
+        ""
+    ).strip()
+
+    if due_date_value:
+        try:
+            due_date = date.fromisoformat(
+                due_date_value
+            )
+        except ValueError:
+            flash("Invalid due date.")
+            return redirect(url_for("tasks"))
+
+    # -------------------------
+    # Priority
+    # -------------------------
+
     priority = request.form.get(
         "priority",
         "normal"
-    )
+    ).strip().lower()
 
-    if priority not in (
+    if priority not in {
         "low",
         "normal",
         "high"
-    ):
+    }:
         priority = "normal"
+
+    # -------------------------
+    # Create task
+    # -------------------------
 
     task = Task(
         user_id=current_user.id,
         title=title,
         subject_id=subject_id,
         due_date=due_date,
-        priority=priority
+        priority=priority,
+        completed=False
     )
 
     db.session.add(task)
     db.session.commit()
 
-    flash("Task added.")
+    flash("Task added successfully.")
 
     return redirect(
         url_for("tasks")
     )
 
 
-@app.route("/tasks/<int:task_id>/toggle", methods=["POST"])
+@app.route(
+    "/tasks/<int:task_id>/toggle",
+    methods=["POST"]
+)
 @login_required
 def toggle_task(task_id):
 
-    task = Task.query.filter_by(
-        id=task_id,
-        user_id=current_user.id
-    ).first_or_404()
+    task = (
+        Task.query
+        .filter_by(
+            id=task_id,
+            user_id=current_user.id
+        )
+        .first_or_404()
+    )
 
     task.completed = not task.completed
 
@@ -974,17 +1133,23 @@ def toggle_task(task_id):
     )
 
 
-@app.route("/tasks/<int:task_id>/delete", methods=["POST"])
+@app.route(
+    "/tasks/<int:task_id>/delete",
+    methods=["POST"]
+)
 @login_required
 def delete_task(task_id):
 
-    task = Task.query.filter_by(
-        id=task_id,
-        user_id=current_user.id
-    ).first_or_404()
+    task = (
+        Task.query
+        .filter_by(
+            id=task_id,
+            user_id=current_user.id
+        )
+        .first_or_404()
+    )
 
     db.session.delete(task)
-
     db.session.commit()
 
     flash("Task deleted.")
@@ -1101,9 +1266,7 @@ def update_goal_progress(goal_id):
     )
 
     goal.current = current
-
-    if goal.current >= goal.target:
-        goal.completed = True
+    goal.completed = goal.current >= goal.target
 
     db.session.commit()
 
@@ -1131,6 +1294,257 @@ def delete_goal(goal_id):
 
     return redirect(
         url_for("goals")
+    )
+# ============================================================
+# STUDY TIMER
+# ============================================================
+
+@app.route("/timer")
+@login_required
+def timer():
+
+    subjects = Subject.query.filter_by(
+        user_id=current_user.id
+    ).order_by(
+        Subject.name
+    ).all()
+
+    return render_template(
+        "timer.html",
+        subjects=subjects
+    )
+
+# ============================================================
+# FRIENDS
+# ============================================================
+
+@app.route("/friends/search")
+@login_required
+def search_users():
+
+    query = request.args.get(
+        "q",
+        ""
+    ).strip().lower()
+
+    if not query:
+        return jsonify([])
+
+    users = User.query.filter(
+        User.username.ilike(
+            f"%{query}%"
+        )
+    ).filter(
+        User.id != current_user.id
+    ).limit(20).all()
+
+    return jsonify([
+        {
+            "id": user.id,
+            "username": user.username,
+            "display_name": user.display_name
+        }
+        for user in users
+    ])
+
+
+@app.route(
+    "/friends/request/<int:user_id>",
+    methods=["POST"]
+)
+@login_required
+def send_friend_request(user_id):
+
+    if user_id == current_user.id:
+        flash("You cannot add yourself.")
+        return redirect(url_for("friends_page"))
+
+    target = db.session.get(
+        User,
+        user_id
+    )
+
+    if not target:
+        flash("User not found.")
+        return redirect(url_for("friends_page"))
+
+    existing = Friendship.query.filter(
+        (
+            (Friendship.requester_id == current_user.id)
+            &
+            (Friendship.addressee_id == user_id)
+        )
+        |
+        (
+            (Friendship.requester_id == user_id)
+            &
+            (Friendship.addressee_id == current_user.id)
+        )
+    ).first()
+
+    if existing:
+
+        if existing.status == "accepted":
+            flash("You are already friends.")
+
+        elif (
+            existing.requester_id == user_id
+            and existing.status == "pending"
+        ):
+            existing.status = "accepted"
+            db.session.commit()
+            flash("Friend request accepted.")
+
+        else:
+            flash("A friend request already exists.")
+
+        return redirect(
+            url_for("friends_page")
+        )
+
+
+    friendship = Friendship(
+        requester_id=current_user.id,
+        addressee_id=user_id,
+        status="pending"
+    )
+
+    db.session.add(friendship)
+    db.session.commit()
+
+    flash("Friend request sent.")
+
+    return redirect(
+        url_for("friends_page")
+    )
+
+
+@app.route(
+    "/friends/request/<int:friendship_id>/accept",
+    methods=["POST"]
+)
+@login_required
+def accept_friend_request(friendship_id):
+
+    friendship = Friendship.query.filter_by(
+        id=friendship_id,
+        addressee_id=current_user.id,
+        status="pending"
+    ).first_or_404()
+
+    friendship.status = "accepted"
+
+    db.session.commit()
+
+    flash("Friend request accepted.")
+
+    return redirect(
+        url_for("friends_page")
+    )
+
+
+@app.route(
+    "/friends/request/<int:friendship_id>/reject",
+    methods=["POST"]
+)
+@login_required
+def reject_friend_request(friendship_id):
+
+    friendship = Friendship.query.filter_by(
+        id=friendship_id,
+        addressee_id=current_user.id,
+        status="pending"
+    ).first_or_404()
+
+    db.session.delete(friendship)
+
+    db.session.commit()
+
+    flash("Friend request rejected.")
+
+    return redirect(
+        url_for("friends_page")
+    )
+
+
+@app.route("/friends/page")
+@login_required
+def friends_page():
+
+    accepted = Friendship.query.filter(
+        (
+            (
+                Friendship.requester_id
+                == current_user.id
+            )
+            |
+            (
+                Friendship.addressee_id
+                == current_user.id
+            )
+        ),
+        Friendship.status == "accepted"
+    ).all()
+
+
+    friend_ids = []
+
+    for friendship in accepted:
+
+        if (
+            friendship.requester_id
+            == current_user.id
+        ):
+            friend_ids.append(
+                friendship.addressee_id
+            )
+
+        else:
+            friend_ids.append(
+                friendship.requester_id
+            )
+
+
+    friends_list = []
+
+    if friend_ids:
+
+        friends_list = User.query.filter(
+            User.id.in_(friend_ids)
+        ).order_by(
+            User.username
+        ).all()
+
+
+    pending = Friendship.query.filter_by(
+        addressee_id=current_user.id,
+        status="pending"
+    ).all()
+
+
+    pending_users = []
+
+    for friendship in pending:
+
+        user = db.session.get(
+            User,
+            friendship.requester_id
+        )
+
+        if user:
+
+            pending_users.append(
+                {
+                    "friendship": friendship,
+                    "user": user
+                }
+            )
+
+
+    return render_template(
+        "friends.html",
+        friends=friends_list,
+        pending=pending_users
     )
 
 # ============================================================
