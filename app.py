@@ -12,6 +12,8 @@ from flask import (
     flash
 )
 
+from flask_migrate import Migrate
+
 from flask_login import (
     LoginManager,
     login_user,
@@ -83,6 +85,7 @@ app.config[
 
 db.init_app(app)
 
+migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 
